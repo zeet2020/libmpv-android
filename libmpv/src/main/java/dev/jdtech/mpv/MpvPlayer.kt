@@ -29,9 +29,9 @@ class MpvPlayer private constructor() : AutoCloseable {
             configure: MpvPlayerConfig.() -> Unit = {},
         ): MpvPlayer = withContext(Dispatchers.IO) {
             val player = MpvPlayer()
-            check(instance.compareAndSet(null, player)) {
-                "An MpvPlayer instance is already active. Close it before creating a new one."
-            }
+            // Atomically replace; mark old as closed so its background close() skips nativeDestroy
+            instance.getAndSet(player)?.also { it.closed = true }
+            // nativeCreate's safety net handles any leaked native session
             try {
                 nativeCreate(context.applicationContext)
                 MpvPlayerConfig().apply(configure)
@@ -39,7 +39,7 @@ class MpvPlayer private constructor() : AutoCloseable {
                 ensureActive()
                 player
             } catch (e: Throwable) {
-                instance.set(null)
+                instance.compareAndSet(player, null)
                 try { nativeDestroy() } catch (_: Throwable) {}
                 throw e
             }
@@ -265,8 +265,11 @@ class MpvPlayer private constructor() : AutoCloseable {
     override fun close() {
         if (closed) return
         closed = true
-        instance.set(null)
-        nativeDestroy()
+        // Only destroy native if we're still the active player.
+        // If create() already replaced us, nativeCreate's safety net handles native cleanup.
+        if (instance.compareAndSet(this, null)) {
+            nativeDestroy()
+        }
     }
 
     private fun checkNotClosed() {
