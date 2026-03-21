@@ -3,6 +3,7 @@ package dev.jdtech.mpv
 import android.content.Context
 import android.view.Surface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,10 +36,11 @@ class MpvPlayer private constructor() : AutoCloseable {
                 nativeCreate(context.applicationContext)
                 MpvPlayerConfig().apply(configure)
                 nativeInit()
+                ensureActive()
                 player
             } catch (e: Throwable) {
-                try { nativeDestroy() } catch (_: Throwable) {}
                 instance.set(null)
+                try { nativeDestroy() } catch (_: Throwable) {}
                 throw e
             }
         }
@@ -118,24 +120,26 @@ class MpvPlayer private constructor() : AutoCloseable {
             return sb.toString()
         }
 
-        // JNI native declarations
+        // JNI native declarations — private to avoid internal name mangling
 
-        @JvmStatic internal external fun nativeCreate(appctx: Context)
-        @JvmStatic internal external fun nativeInit()
-        @JvmStatic internal external fun nativeDestroy()
-        @JvmStatic internal external fun nativeCommand(cmd: Array<out String>)
-        @JvmStatic internal external fun nativeSetOptionString(name: String, value: String): Int
-        @JvmStatic internal external fun nativeAttachSurface(surface: Surface)
-        @JvmStatic internal external fun nativeDetachSurface()
-        @JvmStatic internal external fun nativeGetPropertyInt(name: String): Int?
-        @JvmStatic internal external fun nativeGetPropertyDouble(name: String): Double?
-        @JvmStatic internal external fun nativeGetPropertyBoolean(name: String): Boolean?
-        @JvmStatic internal external fun nativeGetPropertyString(name: String): String?
-        @JvmStatic internal external fun nativeSetPropertyInt(name: String, value: Int)
-        @JvmStatic internal external fun nativeSetPropertyDouble(name: String, value: Double)
-        @JvmStatic internal external fun nativeSetPropertyBoolean(name: String, value: Boolean)
-        @JvmStatic internal external fun nativeSetPropertyString(name: String, value: String)
-        @JvmStatic internal external fun nativeObserveProperty(name: String, format: Int)
+        @JvmStatic private external fun nativeCreate(appctx: Context)
+        @JvmStatic private external fun nativeInit()
+        @JvmStatic private external fun nativeDestroy()
+        @JvmStatic private external fun nativeCommand(cmd: Array<out String>)
+        @JvmStatic private external fun nativeSetOptionString(name: String, value: String): Int
+        @JvmStatic private external fun nativeAttachSurface(surface: Surface)
+        @JvmStatic private external fun nativeDetachSurface()
+        @JvmStatic private external fun nativeGetPropertyInt(name: String): Int?
+        @JvmStatic private external fun nativeGetPropertyDouble(name: String): Double?
+        @JvmStatic private external fun nativeGetPropertyBoolean(name: String): Boolean?
+        @JvmStatic private external fun nativeGetPropertyString(name: String): String?
+        @JvmStatic private external fun nativeSetPropertyInt(name: String, value: Int)
+        @JvmStatic private external fun nativeSetPropertyDouble(name: String, value: Double)
+        @JvmStatic private external fun nativeSetPropertyBoolean(name: String, value: Boolean)
+        @JvmStatic private external fun nativeSetPropertyString(name: String, value: String)
+        @JvmStatic private external fun nativeObserveProperty(name: String, format: Int)
+
+        internal fun setOptionString(name: String, value: String): Int = nativeSetOptionString(name, value)
     }
 
     private val events = MutableSharedFlow<MpvEvent>(extraBufferCapacity = 64)
@@ -261,8 +265,8 @@ class MpvPlayer private constructor() : AutoCloseable {
     override fun close() {
         if (closed) return
         closed = true
-        nativeDestroy()
         instance.set(null)
+        nativeDestroy()
     }
 
     private fun checkNotClosed() {

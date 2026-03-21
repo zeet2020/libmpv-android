@@ -4,6 +4,7 @@
 #include <ctime>
 #include <clocale>
 #include <atomic>
+#include <mutex>
 
 #include <mpv/client.h>
 
@@ -19,6 +20,8 @@ extern "C" {
 
 #define ARRAYLEN(a) (sizeof(a)/sizeof(a[0]))
 
+void render_cleanup(JNIEnv *env);
+
 extern "C" {
     jni_func(void, nativeCreate, jobject appctx);
     jni_func(void, nativeInit);
@@ -32,6 +35,7 @@ mpv_handle *g_mpv;
 std::atomic<bool> g_event_thread_request_exit(false);
 
 static pthread_t event_thread_id;
+static std::mutex g_lifecycle_mutex;
 
 static void prepare_environment(JNIEnv *env, jobject appctx) {
     setlocale(LC_NUMERIC, "C");
@@ -47,11 +51,17 @@ static void prepare_environment(JNIEnv *env, jobject appctx) {
 }
 
 jni_func(void, nativeCreate, jobject appctx) {
+    std::lock_guard<std::mutex> lock(g_lifecycle_mutex);
     prepare_environment(env, appctx);
 
     if (g_mpv) {
-        die("mpv is already initialized");
-        return;
+        ALOGW("destroying leaked mpv instance");
+        g_event_thread_request_exit = true;
+        mpv_wakeup(g_mpv);
+        pthread_join(event_thread_id, NULL);
+        mpv_terminate_destroy(g_mpv);
+        g_mpv = NULL;
+        render_cleanup(env);
     }
 
     g_mpv = mpv_create();
@@ -83,6 +93,7 @@ jni_func(void, nativeInit) {
 }
 
 jni_func(void, nativeDestroy) {
+    std::lock_guard<std::mutex> lock(g_lifecycle_mutex);
     if (!g_mpv) {
         ALOGV("mpv destroy called but it's already destroyed");
         return;
@@ -95,6 +106,7 @@ jni_func(void, nativeDestroy) {
 
     mpv_terminate_destroy(g_mpv);
     g_mpv = NULL;
+    render_cleanup(env);
 }
 
 jni_func(void, nativeCommand, jobjectArray jarray) {

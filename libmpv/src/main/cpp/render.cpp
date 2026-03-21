@@ -38,3 +38,10 @@ jni_func(void, nativeDetachSurface) {
     env->DeleteGlobalRef(surface);
     surface = NULL;
 }
+
+void render_cleanup(JNIEnv *env) {
+    if (surface) {
+        env->DeleteGlobalRef(surface);
+        surface = NULL;
+    }
+}
