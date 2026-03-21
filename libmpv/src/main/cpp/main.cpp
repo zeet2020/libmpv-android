@@ -55,7 +55,7 @@ jni_func(void, nativeCreate, jobject appctx) {
     prepare_environment(env, appctx);
 
     if (g_mpv) {
-        ALOGW("destroying leaked mpv instance");
+        ALOGE("destroying leaked mpv instance");
         g_event_thread_request_exit = true;
         mpv_wakeup(g_mpv);
         pthread_join(event_thread_id, NULL);

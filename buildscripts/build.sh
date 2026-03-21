@@ -72,6 +72,7 @@ setup_prefix () {
 	# also define: release build, static libs and no source downloads at runtime(!!!)
 	cat >"$prefix_dir/crossfile.txt" <<CROSSFILE
 [built-in options]
+prefix = '/usr'
 buildtype = 'release'
 default_library = 'static'
 wrap_mode = 'nodownload'
