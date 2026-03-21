@@ -7,13 +7,13 @@
 #include "globals.h"
 
 extern "C" {
-    jni_func(void, attachSurface, jobject surface_);
-    jni_func(void, detachSurface);
+    jni_func(void, nativeAttachSurface, jobject surface_);
+    jni_func(void, nativeDetachSurface);
 };
 
 static jobject surface;
 
-jni_func(void, attachSurface, jobject surface_) {
+jni_func(void, nativeAttachSurface, jobject surface_) {
     CHECK_MPV_INIT();
 
     surface = env->NewGlobalRef(surface_);
@@ -27,7 +27,7 @@ jni_func(void, attachSurface, jobject surface_) {
         ALOGE("mpv_set_option(wid) returned error %s", mpv_error_string(result));
 }
 
-jni_func(void, detachSurface) {
+jni_func(void, nativeDetachSurface) {
     CHECK_MPV_INIT();
 
     int64_t wid = 0;

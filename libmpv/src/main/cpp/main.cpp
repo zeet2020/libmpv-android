@@ -20,11 +20,11 @@ extern "C" {
 #define ARRAYLEN(a) (sizeof(a)/sizeof(a[0]))
 
 extern "C" {
-    jni_func(void, create, jobject appctx);
-    jni_func(void, init);
-    jni_func(void, destroy);
+    jni_func(void, nativeCreate, jobject appctx);
+    jni_func(void, nativeInit);
+    jni_func(void, nativeDestroy);
 
-    jni_func(void, command, jobjectArray jarray);
+    jni_func(void, nativeCommand, jobjectArray jarray);
 };
 
 JavaVM *g_vm;
@@ -46,7 +46,7 @@ static void prepare_environment(JNIEnv *env, jobject appctx) {
     init_methods_cache(env);
 }
 
-jni_func(void, create, jobject appctx) {
+jni_func(void, nativeCreate, jobject appctx) {
     prepare_environment(env, appctx);
 
     if (g_mpv) {
@@ -63,7 +63,7 @@ jni_func(void, create, jobject appctx) {
     mpv_request_log_messages(g_mpv, "v");
 }
 
-jni_func(void, init) {
+jni_func(void, nativeInit) {
     if (!g_mpv) {
         die("mpv is not created");
         return;
@@ -82,7 +82,7 @@ jni_func(void, init) {
     pthread_setname_np(event_thread_id, "event_thread");
 }
 
-jni_func(void, destroy) {
+jni_func(void, nativeDestroy) {
     if (!g_mpv) {
         ALOGV("mpv destroy called but it's already destroyed");
         return;
@@ -97,7 +97,7 @@ jni_func(void, destroy) {
     g_mpv = NULL;
 }
 
-jni_func(void, command, jobjectArray jarray) {
+jni_func(void, nativeCommand, jobjectArray jarray) {
     CHECK_MPV_INIT();
 
     const char *arguments[128] = { 0 };

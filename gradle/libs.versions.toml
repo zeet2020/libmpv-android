@@ -1,6 +1,10 @@
 [versions]
 android-plugin = "9.0.1"
+coroutines = "1.9.0"
 maven-publish = "0.36.0"
+
+[libraries]
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "android-plugin" }

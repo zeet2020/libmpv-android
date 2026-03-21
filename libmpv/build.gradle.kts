@@ -40,6 +40,10 @@ android {
     }
 }
 
+dependencies {
+    implementation(libs.kotlinx.coroutines.android)
+}
+
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()

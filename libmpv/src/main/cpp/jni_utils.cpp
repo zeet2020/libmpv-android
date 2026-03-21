@@ -13,8 +13,6 @@ bool acquire_jni_env(JavaVM *vm, JNIEnv **env)
         return ret == JNI_OK;
 }
 
-// Apparently it's considered slow to FindClass and GetMethodID every time we need them,
-// so let's have a nice cache here
 void init_methods_cache(JNIEnv *env) {
     static bool methods_initialized = false;
     if (methods_initialized)
@@ -28,20 +26,15 @@ void init_methods_cache(JNIEnv *env) {
     java_Boolean = FIND_CLASS("java/lang/Boolean");
     java_Boolean_init = env->GetMethodID(java_Boolean, "<init>", "(Z)V");
 
-    mpv_MPVLib = FIND_CLASS("dev/jdtech/mpv/MPVLib");
-    mpv_MPVLib_eventProperty_S  = env->GetStaticMethodID(mpv_MPVLib, "eventProperty", "(Ljava/lang/String;)V"); // eventProperty(String)
-    mpv_MPVLib_eventProperty_Sb = env->GetStaticMethodID(mpv_MPVLib, "eventProperty", "(Ljava/lang/String;Z)V"); // eventProperty(String, boolean)
-    mpv_MPVLib_eventProperty_Sl = env->GetStaticMethodID(mpv_MPVLib, "eventProperty", "(Ljava/lang/String;J)V"); // eventProperty(String, long)
-    mpv_MPVLib_eventProperty_Sd = env->GetStaticMethodID(mpv_MPVLib, "eventProperty", "(Ljava/lang/String;D)V"); // eventProperty(String, double)
-    mpv_MPVLib_eventProperty_SS = env->GetStaticMethodID(mpv_MPVLib, "eventProperty", "(Ljava/lang/String;Ljava/lang/String;)V"); // eventProperty(String, String)
-    mpv_MPVLib_event = env->GetStaticMethodID(mpv_MPVLib, "event", "(I)V"); // event(int)
-    mpv_MPVLib_logMessage_SiS = env->GetStaticMethodID(mpv_MPVLib, "logMessage", "(Ljava/lang/String;ILjava/lang/String;)V"); // logMessage(String, int, String)
-    mpv_MPVLib_eventGetPropertyReply_JI   = env->GetStaticMethodID(mpv_MPVLib, "eventGetPropertyReply", "(JI)V"); // eventGetPropertyReply(long, int)
-    mpv_MPVLib_eventGetPropertyReply_JISb = env->GetStaticMethodID(mpv_MPVLib, "eventGetPropertyReply", "(JILjava/lang/String;Z)V"); // eventGetPropertyReply(long, int, String, boolean)
-    mpv_MPVLib_eventGetPropertyReply_JISl = env->GetStaticMethodID(mpv_MPVLib, "eventGetPropertyReply", "(JILjava/lang/String;J)V"); // eventGetPropertyReply(long, int, String, long)
-    mpv_MPVLib_eventGetPropertyReply_JISd = env->GetStaticMethodID(mpv_MPVLib, "eventGetPropertyReply", "(JILjava/lang/String;D)V"); // eventGetPropertyReply(long, int, String, double)
-    mpv_MPVLib_eventGetPropertyReply_JISS = env->GetStaticMethodID(mpv_MPVLib, "eventGetPropertyReply", "(JILjava/lang/String;Ljava/lang/String;)V"); // eventGetPropertyReply(long, int, String, String)
-    mpv_MPVLib_eventSetPropertyReply_JI   = env->GetStaticMethodID(mpv_MPVLib, "eventSetPropertyReply", "(JI)V"); // eventSetPropertyReply(long, int)
+    mpv_MpvPlayer = FIND_CLASS("dev/jdtech/mpv/MpvPlayer");
+    mpv_MpvPlayer_onPropertyChanged_S  = env->GetStaticMethodID(mpv_MpvPlayer, "onPropertyChanged", "(Ljava/lang/String;)V");
+    mpv_MpvPlayer_onPropertyChanged_Sb = env->GetStaticMethodID(mpv_MpvPlayer, "onPropertyChanged", "(Ljava/lang/String;Z)V");
+    mpv_MpvPlayer_onPropertyChanged_Sl = env->GetStaticMethodID(mpv_MpvPlayer, "onPropertyChanged", "(Ljava/lang/String;J)V");
+    mpv_MpvPlayer_onPropertyChanged_Sd = env->GetStaticMethodID(mpv_MpvPlayer, "onPropertyChanged", "(Ljava/lang/String;D)V");
+    mpv_MpvPlayer_onPropertyChanged_SS = env->GetStaticMethodID(mpv_MpvPlayer, "onPropertyChanged", "(Ljava/lang/String;Ljava/lang/String;)V");
+    mpv_MpvPlayer_onEvent      = env->GetStaticMethodID(mpv_MpvPlayer, "onEvent", "(I)V");
+    mpv_MpvPlayer_onEndFile    = env->GetStaticMethodID(mpv_MpvPlayer, "onEndFile", "(I)V");
+    mpv_MpvPlayer_onLogMessage = env->GetStaticMethodID(mpv_MpvPlayer, "onLogMessage", "(Ljava/lang/String;ILjava/lang/String;)V");
     #undef FIND_CLASS
 
     methods_initialized = true;

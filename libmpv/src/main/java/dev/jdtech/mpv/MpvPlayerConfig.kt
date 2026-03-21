@@ -1,0 +1,10 @@
+package dev.jdtech.mpv
+
+class MpvPlayerConfig internal constructor() {
+    fun setOption(name: String, value: String) {
+        val result = MpvPlayer.nativeSetOptionString(name, value)
+        if (result < 0) {
+            throw MpvException("Failed to set option '$name' to '$value': error $result")
+        }
+    }
+}
