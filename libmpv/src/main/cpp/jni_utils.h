@@ -22,4 +22,10 @@ UTIL_EXTERN jmethodID mpv_MPVLib_eventProperty_S,
         mpv_MPVLib_eventProperty_Sd,
         mpv_MPVLib_eventProperty_SS,
         mpv_MPVLib_event,
-        mpv_MPVLib_logMessage_SiS;
+        mpv_MPVLib_logMessage_SiS,
+        mpv_MPVLib_eventGetPropertyReply_JI,
+        mpv_MPVLib_eventGetPropertyReply_JISb,
+        mpv_MPVLib_eventGetPropertyReply_JISl,
+        mpv_MPVLib_eventGetPropertyReply_JISd,
+        mpv_MPVLib_eventGetPropertyReply_JISS,
+        mpv_MPVLib_eventSetPropertyReply_JI;

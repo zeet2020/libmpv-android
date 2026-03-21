@@ -35,6 +35,12 @@ object MPVLib {
 
     external fun observeProperty(property: String, format: Int)
 
+    external fun getPropertyAsync(property: String, format: Int, replyUserdata: Long): Int
+    external fun setPropertyAsyncInt(property: String, value: Int, replyUserdata: Long): Int
+    external fun setPropertyAsyncDouble(property: String, value: Double, replyUserdata: Long): Int
+    external fun setPropertyAsyncBoolean(property: String, value: Boolean, replyUserdata: Long): Int
+    external fun setPropertyAsyncString(property: String, value: String, replyUserdata: Long): Int
+
     private val observers = mutableListOf<EventObserver>()
 
     @JvmStatic
@@ -99,6 +105,54 @@ object MPVLib {
         }
     }
 
+    @JvmStatic
+    fun eventGetPropertyReply(replyUserdata: Long, error: Int) {
+        synchronized(observers) {
+            for (o in observers)
+                o.eventGetPropertyReply(replyUserdata, error)
+        }
+    }
+
+    @JvmStatic
+    fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: Long) {
+        synchronized(observers) {
+            for (o in observers)
+                o.eventGetPropertyReply(replyUserdata, error, property, value)
+        }
+    }
+
+    @JvmStatic
+    fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: Double) {
+        synchronized(observers) {
+            for (o in observers)
+                o.eventGetPropertyReply(replyUserdata, error, property, value)
+        }
+    }
+
+    @JvmStatic
+    fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: Boolean) {
+        synchronized(observers) {
+            for (o in observers)
+                o.eventGetPropertyReply(replyUserdata, error, property, value)
+        }
+    }
+
+    @JvmStatic
+    fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: String) {
+        synchronized(observers) {
+            for (o in observers)
+                o.eventGetPropertyReply(replyUserdata, error, property, value)
+        }
+    }
+
+    @JvmStatic
+    fun eventSetPropertyReply(replyUserdata: Long, error: Int) {
+        synchronized(observers) {
+            for (o in observers)
+                o.eventSetPropertyReply(replyUserdata, error)
+        }
+    }
+
     private val log_observers = mutableListOf<LogObserver>()
 
     @JvmStatic
@@ -130,6 +184,12 @@ object MPVLib {
         fun eventProperty(property: String, value: Boolean)
         fun eventProperty(property: String, value: String)
         fun event(eventId: Int)
+        fun eventGetPropertyReply(replyUserdata: Long, error: Int) {}
+        fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: Long) {}
+        fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: Double) {}
+        fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: Boolean) {}
+        fun eventGetPropertyReply(replyUserdata: Long, error: Int, property: String, value: String) {}
+        fun eventSetPropertyReply(replyUserdata: Long, error: Int) {}
     }
 
     interface LogObserver {

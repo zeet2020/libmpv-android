@@ -20,6 +20,12 @@ extern "C" {
     jni_func(void, setPropertyString, jstring jproperty, jstring jvalue);
 
     jni_func(void, observeProperty, jstring property, jint format);
+
+    jni_func(jint, getPropertyAsync, jstring property, jint format, jlong replyUserdata);
+    jni_func(jint, setPropertyAsyncInt, jstring property, jint value, jlong replyUserdata);
+    jni_func(jint, setPropertyAsyncDouble, jstring property, jdouble value, jlong replyUserdata);
+    jni_func(jint, setPropertyAsyncBoolean, jstring property, jboolean value, jlong replyUserdata);
+    jni_func(jint, setPropertyAsyncString, jstring property, jstring value, jlong replyUserdata);
 }
 
 jni_func(jint, setOptionString, jstring joption, jstring jvalue) {
@@ -118,4 +124,48 @@ jni_func(void, observeProperty, jstring property, jint format) {
     if (result < 0)
         ALOGE("mpv_observe_property(%s) format %d returned error %s", prop, format, mpv_error_string(result));
     env->ReleaseStringUTFChars(property, prop);
+}
+
+jni_func(jint, getPropertyAsync, jstring jproperty, jint format, jlong replyUserdata) {
+    CHECK_MPV_INIT();
+    const char *prop = env->GetStringUTFChars(jproperty, NULL);
+    int result = mpv_get_property_async(g_mpv, (uint64_t)replyUserdata, prop, (mpv_format)format);
+    if (result < 0)
+        ALOGE("mpv_get_property_async(%s) format %d returned error %s", prop, format, mpv_error_string(result));
+    env->ReleaseStringUTFChars(jproperty, prop);
+    return result;
+}
+
+static int common_set_property_async(JNIEnv *env, jstring jproperty, mpv_format format, void *value, uint64_t replyUserdata) {
+    CHECK_MPV_INIT();
+
+    const char *prop = env->GetStringUTFChars(jproperty, NULL);
+    int result = mpv_set_property_async(g_mpv, replyUserdata, prop, format, value);
+    if (result < 0)
+        ALOGE("mpv_set_property_async(%s) format %d returned error %s", prop, format, mpv_error_string(result));
+    env->ReleaseStringUTFChars(jproperty, prop);
+
+    return result;
+}
+
+jni_func(jint, setPropertyAsyncInt, jstring jproperty, jint jvalue, jlong replyUserdata) {
+    int64_t value = static_cast<int64_t>(jvalue);
+    return common_set_property_async(env, jproperty, MPV_FORMAT_INT64, &value, (uint64_t)replyUserdata);
+}
+
+jni_func(jint, setPropertyAsyncDouble, jstring jproperty, jdouble jvalue, jlong replyUserdata) {
+    double value = static_cast<double>(jvalue);
+    return common_set_property_async(env, jproperty, MPV_FORMAT_DOUBLE, &value, (uint64_t)replyUserdata);
+}
+
+jni_func(jint, setPropertyAsyncBoolean, jstring jproperty, jboolean jvalue, jlong replyUserdata) {
+    int value = jvalue == JNI_TRUE ? 1 : 0;
+    return common_set_property_async(env, jproperty, MPV_FORMAT_FLAG, &value, (uint64_t)replyUserdata);
+}
+
+jni_func(jint, setPropertyAsyncString, jstring jproperty, jstring jvalue, jlong replyUserdata) {
+    const char *value = env->GetStringUTFChars(jvalue, NULL);
+    int result = common_set_property_async(env, jproperty, MPV_FORMAT_STRING, &value, (uint64_t)replyUserdata);
+    env->ReleaseStringUTFChars(jvalue, value);
+    return result;
 }
