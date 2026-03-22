@@ -1,1 +1,1 @@
--keep class dev.jdtech.mpv.MPVLib { *; }
+-keep class dev.jdtech.mpv.MpvPlayer { *; }
