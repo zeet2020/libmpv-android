@@ -34,6 +34,7 @@ cpuflags=
 	--disable-{muxers,encoders,devices,filters} \
 	--enable-muxer=spdif \
 	--enable-filter=loudnorm \
+	--enable-filter=equalizer \
 	--disable-v4l2-m2m
 
 make -j$cores
