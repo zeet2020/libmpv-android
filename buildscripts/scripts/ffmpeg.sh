@@ -32,6 +32,7 @@ cpuflags=
 	--disable-{stripping,doc,programs} \
 	--disable-{muxers,encoders,devices,filters} \
 	--enable-filter=loudnorm \
+	--enable-filter=equalizer \
 	--disable-v4l2-m2m
 
 make -j$cores
