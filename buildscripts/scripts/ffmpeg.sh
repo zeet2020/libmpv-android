@@ -35,7 +35,7 @@ cpuflags=
 	--enable-muxer=spdif \
 	--enable-filter=loudnorm \
 	--enable-filter=equalizer \
-	--enable-filter=showcqt,showspectrum,showwaves,avectorscope,showvolume,format,aformat,asplit \
+	--enable-filter=showcqt,showspectrum,showwaves,avectorscope,showvolume,format,aformat,asplit,aresample,scale \
 	--disable-v4l2-m2m
 
 make -j$cores
