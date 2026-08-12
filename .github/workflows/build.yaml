@@ -12,6 +12,10 @@ jobs:
   build:
     name: Build (API ${{ matrix.api }})
     runs-on: ubuntu-latest
+    # The default GITHUB_TOKEN is read-only here, which made every tag build
+    # fail at "Create release" with "Resource not accessible by integration".
+    permissions:
+      contents: write
     # Two AARs from one source tree: the regular one, and a legacy one for
     # Android 5.x devices (Fire OS 5 / discarded Fire TV hardware). A tag build
     # attaches both to the same release, so consumers pin one version string.
