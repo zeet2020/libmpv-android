@@ -6,7 +6,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cleanbuild=0
 nodeps=0
 target=mpv-android
-archs=(armv7l arm64 x86 x86_64)
+archs=(${MPV_ARCHS:-armv7l arm64 x86 x86_64})
 
 getdeps () {
 	varname="dep_${1//-/_}[*]"
@@ -17,7 +17,13 @@ loadarch () {
 	unset CC CXX CPATH LIBRARY_PATH C_INCLUDE_PATH CPLUS_INCLUDE_PATH
   unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
 
-	local apilvl=26
+	# Overridable so one workflow can build both the regular AAR and a legacy
+	# one for Android 5.x (Fire OS 5) devices. Compiling at 26 makes the
+	# headers emit __register_atfork (API 23), stdin/stdout/stderr (23) and
+	# fseeko64/ftello64 (24); those are undefined on Android 5.1, so every
+	# ffmpeg/mpv .so fails to dlopen there. At 21 the pre-23 equivalents are
+	# emitted instead. No mpv/ffmpeg feature depends on the difference.
+	local apilvl=${MPV_API_LEVEL:-26}
 	# ndk_triple: what the toolchain actually is
 	# cc_triple: what Google pretends the toolchain is
 	if [ "$1" == "armv7l" ]; then

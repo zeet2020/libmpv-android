@@ -10,8 +10,21 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build (API ${{ matrix.api }})
     runs-on: ubuntu-latest
+    # Two AARs from one source tree: the regular one, and a legacy one for
+    # Android 5.x devices (Fire OS 5 / discarded Fire TV hardware). A tag build
+    # attaches both to the same release, so consumers pin one version string.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api: 26
+            suffix: ""
+          - api: 21
+            suffix: "-legacy"
+    env:
+      MPV_API_LEVEL: ${{ matrix.api }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -36,12 +49,16 @@ jobs:
       - name: Build
         working-directory: ./buildscripts
         run: ./build.sh
+      # Both matrix jobs emit the same path, so name the asset before it leaves
+      # the runner — otherwise the two legs collide on the release.
+      - name: Rename AAR
+        run: mv ./libmpv/build/outputs/aar/libmpv-release.aar ./libmpv-release${{ matrix.suffix }}.aar
       - uses: actions/upload-artifact@v4
         with:
-          name: libmpv-release.aar
-          path: ./libmpv/build/outputs/aar/libmpv-release.aar
+          name: libmpv-release${{ matrix.suffix }}.aar
+          path: ./libmpv-release${{ matrix.suffix }}.aar
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ./libmpv/build/outputs/aar/libmpv-release.aar
+          files: ./libmpv-release${{ matrix.suffix }}.aar
