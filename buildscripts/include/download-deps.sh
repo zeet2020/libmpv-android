@@ -2,7 +2,10 @@
 
 . ./include/depinfo.sh
 
-[ -z "$WGET" ] && WGET=wget
+# wget treats a 5xx as fatal and gives up, so a single bad response from a
+# release CDN kills a 20-minute build. Retry them instead; the two tarball
+# fetches below (libunibreak, lua) are the only downloads not served by git.
+[ -z "$WGET" ] && WGET="wget --tries=10 --waitretry=5 --retry-on-http-error=429,500,502,503,504"
 
 mkdir -p deps && cd deps
 
