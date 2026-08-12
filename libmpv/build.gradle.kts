@@ -14,7 +14,12 @@ android {
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        minSdk = 26
+        // Must track MPV_API_LEVEL: buildscripts/build.sh only compiles
+        // mpv/ffmpeg into jniLibs, while libplayer.so is built here by CMake
+        // and follows this value. Leave it at 26 for a legacy build and
+        // libplayer.so alone still imports __register_atfork, which is enough
+        // to break loading on Android 5.1.
+        minSdk = System.getenv("MPV_API_LEVEL")?.toInt() ?: 26
         consumerProguardFiles("proguard-rules.pro")
         externalNativeBuild {
             cmake {
