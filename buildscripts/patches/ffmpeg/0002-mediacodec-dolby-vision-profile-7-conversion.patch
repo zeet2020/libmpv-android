@@ -2,18 +2,18 @@ diff --git a/configure b/configure
 index a0eed36..539747c 100755
 --- a/configure
 +++ b/configure
-@@ -1934,6 +1934,7 @@ EXTERNAL_LIBRARY_LIST="
-     libcelt
+@@ -2061,6 +2061,7 @@ EXTERNAL_LIBRARY_LIST="
+     libcaca
      libcodec2
      libdav1d
 +    libdovi
      libdc1394
      libflite
      libfontconfig
-@@ -7034,6 +7035,7 @@ enabled libcelt           && require libcelt celt/celt.h celt_decode -lcelt0 &&
- enabled libcaca           && require_pkg_config libcaca caca caca.h caca_create_canvas
+@@ -7240,6 +7241,7 @@ enabled libbs2b           && require_pkg_config libbs2b libbs2b bs2b.h bs2b_open
  enabled libcodec2         && require libcodec2 codec2/codec2.h codec2_create -lcodec2
- enabled libdav1d          && require_pkg_config libdav1d "dav1d >= 0.5.0" "dav1d/dav1d.h" dav1d_version
+ enabled libcurl           && check_pkg_config libcurl "libcurl >= 7.88.0" curl/curl.h curl_easy_init
+ enabled libdav1d          && require_pkg_config libdav1d "dav1d >= 1.0.0" "dav1d/dav1d.h" dav1d_version
 +enabled libdovi           && require libdovi libdovi/rpu_parser.h dovi_parse_unspec62_nalu -ldovi
  enabled libdavs2          && require_pkg_config libdavs2 "davs2 >= 1.6.0" davs2.h davs2_decoder_open
  enabled libdc1394         && require_pkg_config libdc1394 libdc1394-2 dc1394/dc1394.h dc1394_new
@@ -32,7 +32,7 @@ index 4febddd..0e444c9 100644
  #include "h264_parse.h"
  #include "h264_ps.h"
  #include "hevc/parse.h"
-@@ -61,8 +64,24 @@ typedef struct MediaCodecH264DecContext {
+@@ -61,8 +64,24 @@ typedef struct MediaCodecContext {
      // Ref. MediaFormat KEY_OPERATING_RATE
      int operating_rate;
      int dolby_vision;
@@ -40,7 +40,7 @@ index 4febddd..0e444c9 100644
 +    // Per-packet Dolby Vision NAL filter selected at init (DV_FILTER_*).
 +    int dv_filter;
 +    int dv_filter_warned;
- } MediaCodecH264DecContext;
+ } MediaCodecContext;
  
 +// Dolby Vision profile 7 packet filters: convert rewrites the RPU (UNSPEC62)
 +// to profile 8.1 and drops the enhancement layer (UNSPEC63); strip drops both.
@@ -56,7 +56,7 @@ index 4febddd..0e444c9 100644
 +
  static av_cold int mediacodec_decode_close(AVCodecContext *avctx)
  {
-     MediaCodecH264DecContext *s = avctx->priv_data;
+     MediaCodecContext *s = avctx->priv_data;
 @@ -313,54 +332,215 @@ static int common_set_extradata(AVCodecContext *avctx, FFAMediaFormat *format)
   * only when a "video/dolby-vision" MediaCodec decodes the stream. For the
   * single-layer profiles (dvhe.05, dvhe.08) the HEVC bitstream - with its
@@ -92,7 +92,7 @@ index 4febddd..0e444c9 100644
                                    const char **mime, int *profile_override)
  {
      static const char dv_mime[] = "video/dolby-vision";
-+    MediaCodecH264DecContext *s = avctx->priv_data;
++    MediaCodecContext *s = avctx->priv_data;
      const AVPacketSideData *sd =
          av_packet_side_data_get(avctx->coded_side_data, avctx->nb_coded_side_data,
                                  AV_PKT_DATA_DOVI_CONF);
@@ -202,7 +202,7 @@ index 4febddd..0e444c9 100644
 + */
 +static int dv_filter_packet(AVCodecContext *avctx, AVPacket *pkt)
 +{
-+    MediaCodecH264DecContext *s = avctx->priv_data;
++    MediaCodecContext *s = avctx->priv_data;
 +    const uint8_t *data = pkt->data, *end = pkt->data + pkt->size;
 +    const uint8_t *sc;
 +    AVBufferRef *buf;
