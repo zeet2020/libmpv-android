@@ -18,8 +18,8 @@ v_mbedtls=3.6.5
 v_libplacebo=7.360.0
 v_libdovi=2.3.1
 v_dav1d=1.5.3
-v_ffmpeg=8.0.1
-v_mpv=0.41.0
+v_ffmpeg=9.1
+v_mpv=0.42.0
 
 
 ## Dependency tree

@@ -10,12 +10,12 @@ index ea9362b..4febddd 100644
  #include "h264_parse.h"
  #include "h264_ps.h"
  #include "hevc/parse.h"
-@@ -59,6 +60,7 @@ typedef struct MediaCodecH264DecContext {
+@@ -59,6 +60,7 @@ typedef struct MediaCodecContext {
      int use_ndk_codec;
      // Ref. MediaFormat KEY_OPERATING_RATE
      int operating_rate;
 +    int dolby_vision;
- } MediaCodecH264DecContext;
+ } MediaCodecContext;
  
  static av_cold int mediacodec_decode_close(AVCodecContext *avctx)
 @@ -305,12 +307,69 @@ static int common_set_extradata(AVCodecContext *avctx, FFAMediaFormat *format)
@@ -87,7 +87,7 @@ index ea9362b..4febddd 100644
 +    int profile_override = 0;
  
      FFAMediaFormat *format = NULL;
-     MediaCodecH264DecContext *s = avctx->priv_data;
+     MediaCodecContext *s = avctx->priv_data;
 @@ -351,6 +410,8 @@ static av_cold int mediacodec_decode_init(AVCodecContext *avctx)
          ret = hevc_set_extradata(avctx, format);
          if (ret < 0)
